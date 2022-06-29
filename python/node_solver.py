@@ -1,40 +1,15 @@
+from utils import Node
 from typing import List, Union
 from tqdm import tqdm
 from argparse import ArgumentParser
 import time
-
-class Node:
-    def __init__(self, name, i, connected_v, connected_r) -> None:
-        self.name: str = name
-        self.i: float = i
-        self.v: float = i - sum([x/y for (x, y) in zip(connected_v, connected_r) if type(x) is float])
-        self.modeling = True
-        self.prev_v: float = self.v
-        self.connected_v: List[Union[Node, float]] = connected_v
-        self.connected_r: List[float] = connected_r
-
-    def calculate(self, e) -> int:
-        self.prev_v = self.v
-        sum_rr: float = sum([1/x for x in self.connected_r])
-        sum_v_r: float = 0
-
-        for (x, y) in zip(self.connected_v, self.connected_r):
-            if type(x) is Node:
-                sum_v_r += x.v/y
-            else:
-                sum_v_r += x/y
-
-        self.v = sum_v_r/sum_rr-self.i/sum_rr
-
-        if(abs(self.v - self.prev_v) < e):
-            return 1
-        return 0
 
 
 if __name__ == '__main__':
     start_time = time.time()
     parser = ArgumentParser()
     parser.add_argument("-f", "--file", dest="filename", help="Path to sourse file", metavar="FILE")
+    parser.add_argument("-o", "--out", dest="outname", help="Path to out file", metavar="FILE")
     args = parser.parse_args()
 
     print(f'\nCircuit - {args.filename}')
@@ -48,7 +23,6 @@ if __name__ == '__main__':
         res: List[str] = []
         name_nodes: List[str] = []
         nodes: List[Node] = []
-        # Temp list of nodes
         temp: List[str] = []
 
         print('Fetching data - resistance, voltage soruses and current sourses...\n')
@@ -84,7 +58,7 @@ if __name__ == '__main__':
         print('\nFiltering parasite nodes...')
 
         name_nodes = [x for x in name_nodes if x not in temp and 'gnd' not in x]
-   
+
         temp.clear()
 
         print(f'Total nodes to be solved: {len(name_nodes)}\n')
@@ -140,8 +114,6 @@ if __name__ == '__main__':
                 pbar.update(1)
             pbar.close()
 
-
-
         print(f'\nSolving nodes...')
 
         with tqdm(total=max_steps) as pbar:
@@ -157,7 +129,7 @@ if __name__ == '__main__':
 
         print(f'Writing results in log...\n')
 
-        with open('nd_ibmpg1.solution', 'w') as w:
+        with open(args.out, 'w') as w:
             for node in nodes:
                 if(len(node.name.split(' ')) != 2):
                     w.write(f'{node.name}  {node.v:e}\n'.lower())

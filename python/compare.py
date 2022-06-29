@@ -1,3 +1,6 @@
+'''
+Compare results from IBM solution and from node-model method
+'''
 from tqdm import tqdm
 import numpy as np
 

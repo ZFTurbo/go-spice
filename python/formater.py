@@ -1,3 +1,6 @@
+'''
+IBM spice -> ngspice formater
+'''
 import os
 
 files = os.listdir('./data')

@@ -1,2 +1,5 @@
 **/*.spice
 **/*.solution
+/out
+/formated
+/data
