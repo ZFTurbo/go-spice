@@ -1,5 +1,7 @@
 **/*.spice
 **/*.solution
+**/*.sh
 /out
 /formated
 /data
+**/__pycache__
