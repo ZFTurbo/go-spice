@@ -2,4 +2,5 @@
 **/*.solution
 **/*.sh
 **/*.DS_Store
+._*
 /assets

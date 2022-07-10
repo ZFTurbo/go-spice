@@ -4,38 +4,56 @@ import (
 	"bufio"
 	"flag"
 	"fmt"
-	"log"
 	"os"
 	"pgsolver/pkg/node"
+	"pgsolver/pkg/prettier"
 	"strconv"
 	"strings"
-	"time"
 
 	"github.com/schollz/progressbar/v3"
 )
 
 func main() {
-	timerStart := time.Now() // Exeqution timer
+	consPrettier := prettier.NewPrettier()
 
 	inFilePath := flag.String("f", "../data/ibmpg1.spice", "Iput file")      // Path to input file
 	outFilePath := flag.String("o", "../out/ibmpg1.solution", "Output file") // Path to output file
 	e := flag.Float64("p", 1e-8, "Precision of modeling")                    // Accuracy of the Zeidele method
 	maxSteps := flag.Int("ms", 100000, "Max count of steps in modeling")     // Max ammount of step during modeling
 
+	flag.Parse()
+
 	voltage := make(map[string]float64)  // Map of all voltage sources
 	current := make(map[string]float64)  // Map of all current sources
 	nodes := make(map[string]*node.Node) // Map of all nodes
 
-	bar := progressbar.Default(int64(*maxSteps)) // Progress bar
+	// Progress bar
+	bar := progressbar.NewOptions(*maxSteps,
+		progressbar.OptionEnableColorCodes(true),
+		progressbar.OptionShowBytes(true),
+		progressbar.OptionSetWidth(30),
+		progressbar.OptionSetDescription("[cyan]Solving model...[reset]"),
+		progressbar.OptionSetTheme(progressbar.Theme{
+			Saucer:        "[green]=[reset]",
+			SaucerHead:    "[red]>[reset]",
+			SaucerPadding: " ",
+			BarStart:      "[",
+			BarEnd:        "]",
+		}))
 
-	flag.Parse()
-	fmt.Println("\nExtracting data from file...")
+	consPrettier.Start("PGSim", "1.0.0", "Ilya Shafeev")
+	consPrettier.Info(map[string]interface{}{"Input File: ": *inFilePath,
+		"Output File: ": *outFilePath,
+		"Precicion: ":   *e,
+		"Max steps: ":   *maxSteps})
+
+	fmt.Println("Extraction from file...")
 
 	// Open file
 	inFile, err := os.Open(*inFilePath)
 
 	if err != nil {
-		log.Fatal("Error in input file.\n", err)
+		consPrettier.Error("Error in input file", err)
 	}
 
 	scanner := bufio.NewScanner(inFile) // The file scanner
@@ -49,22 +67,14 @@ func main() {
 			if entryV, err := strconv.ParseFloat(splitedLine[len(splitedLine)-1], 64); err == nil {
 				voltage[splitedLine[1]] = entryV
 			} else {
-				log.Fatal("Add voltage error: ", err)
+				consPrettier.Error("Add voltage error: ", err)
 			}
 		}
 
 		// Find current source
 		if line[0] == 'i' {
 			if entryI, err := strconv.ParseFloat(splitedLine[len(splitedLine)-2], 64); err == nil {
-				if strings.Contains(splitedLine[0], "_g") {
-					if entryCurrent, found := current[splitedLine[2]]; found {
-						entryCurrent += -entryI
-						current[splitedLine[2]] = entryCurrent
-					} else {
-						current[splitedLine[2]] = -entryI
-					}
-				}
-
+				// By default use as node name as first connection of current source, not ground connection
 				if strings.Contains(splitedLine[0], "_v") {
 					if entryCurrent, found := current[splitedLine[1]]; found {
 						entryCurrent += entryI
@@ -72,9 +82,20 @@ func main() {
 					} else {
 						current[splitedLine[1]] = entryI
 					}
+				} else {
+					// Due to IBM format if current source direction to ground change current dirction, not ground connection
+					if strings.Contains(splitedLine[0], "_g") {
+						if entryCurrent, found := current[splitedLine[2]]; found {
+							entryCurrent += -entryI
+							current[splitedLine[2]] = entryCurrent
+						} else {
+							current[splitedLine[2]] = -entryI
+						}
+					}
 				}
+
 			} else {
-				log.Fatal("Add current ground error. ", err)
+				consPrettier.Error("Add current ground error.", err)
 			}
 		}
 
@@ -110,21 +131,23 @@ func main() {
 					}
 				}
 			} else {
-				log.Fatal("Create node. Resistance value error. ", err)
+				consPrettier.Error("Create node. Resistance value error.", err)
 			}
 		}
 	}
 
 	inFile.Close()
 
-	fmt.Println("\nPreparing node based model...")
+	fmt.Println("Preparing node based model...")
+	fmt.Println()
 
 	// Replace node names by node instance also voltage and current sources
-	for _, nodeInstance := range nodes {
+	for key, nodeInstance := range nodes {
+		if entryCurrent, found := current[key]; found {
+			nodeInstance.I += entryCurrent
+		}
+
 		if len(nodeInstance.Viases) == 0 {
-			if entryCurrent, found := current[nodeInstance.Name]; found {
-				nodeInstance.I += entryCurrent
-			}
 			for i := 0; i < len(nodeInstance.ConnectedNodes); i++ {
 				if entryNode, ok := nodeInstance.ConnectedNodes[i].(string); ok {
 					if entryV, found := voltage[entryNode]; found {
@@ -137,10 +160,6 @@ func main() {
 				}
 			}
 		} else {
-			if entryCurrent, found := current[nodeInstance.Name]; found {
-				nodeInstance.I += entryCurrent
-			}
-
 			for i := 0; i < len(nodeInstance.Viases); i++ {
 				if entryNode, found := nodes[nodeInstance.Viases[i]]; found {
 					nodeInstance.ViasesNodes = append(nodeInstance.ViasesNodes, entryNode.ConnectedNodes...)
@@ -177,11 +196,7 @@ func main() {
 			}
 
 		}
-
 	}
-
-	fmt.Println("\nSoving node model...")
-	fmt.Println()
 
 	// Init all nodes
 	for _, nodeInstance := range nodes {
@@ -197,24 +212,19 @@ func main() {
 		}
 
 		if solvedNodes == len(nodes) {
-			fmt.Println()
-			fmt.Println("\nSteps cout: ", i+1)
-			fmt.Println()
+			fmt.Printf("\n\nAccuracy achieved with steps count: %d\n", i+1)
 			break
 		}
 
 		bar.Add(1)
 	}
 
-	fmt.Println()
-	fmt.Println("\nSteps cout: ", *maxSteps)
-	fmt.Println()
-	fmt.Println("\nWriting results...")
+	fmt.Println("Writing results...")
 
 	// Log out data
 	outFile, err := os.Create(*outFilePath)
 	if err != nil {
-		log.Fatal("Create output file error.\n",err)
+		consPrettier.Error("Create output file error.", err)
 	} else {
 		for _, nodeInstance := range nodes {
 			outFile.WriteString(nodeInstance.Name + " ")
@@ -225,7 +235,5 @@ func main() {
 
 	outFile.Close()
 
-	fmt.Println("\nEnd of modeling!")
-	fmt.Println()
-	fmt.Println("Exeqution time in seconds: ", time.Now().Sub(timerStart).Seconds())
+	consPrettier.End()
 }
