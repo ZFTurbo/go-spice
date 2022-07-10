@@ -1,7 +1,5 @@
 **/*.spice
 **/*.solution
 **/*.sh
-/out
-/formated
-/data
-**/__pycache__
+**/*.DS_Store
+/assets
