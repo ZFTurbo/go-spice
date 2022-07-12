@@ -126,7 +126,7 @@ func (prettier *Prettier) Error(massage string, err error) {
 // Print end of the programm and show exeqution time.
 func (prettier *Prettier) End() {
 	if entryTimer, ok := prettier.timer.(time.Time); ok {
-		fmt.Printf("%s\nExeqution time in seconds: %f\n", prettier.Cyan, time.Now().Sub(entryTimer).Seconds())
+		fmt.Printf("%s\n\nExeqution time in seconds: %f\n", prettier.Green, time.Now().Sub(entryTimer).Seconds())
 	}
 	fmt.Printf("%s\n====================END====================\n\n%s", prettier.Green, prettier.Reset)
 }

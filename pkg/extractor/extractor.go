@@ -11,27 +11,16 @@ import (
 	"strings"
 )
 
-// Data extractor for ibm spice formate files.
-type Extractor struct {
-	fileName string
-}
-
-// Craetes new instance of Extractor.
-func NewExtractor(fileName string) *Extractor {
-	extractor := &Extractor{fileName: fileName}
-	return extractor
-}
-
 // Extract all data from spice net list.
 // Return voltage, current, node maps.
-func (extractor *Extractor) Extract() (map[string]float64, map[string]float64, map[string]*node.Node, error) {
+func Extract(fileName string) (map[string]float64, map[string]float64, map[string]*node.Node, error) {
 
 	consPrettier := prettier.NewPrettier()
 	voltage := make(map[string]float64)
 	current := make(map[string]float64)
 	nodes := make(map[string]*node.Node)
 
-	file, err := os.Open(extractor.fileName)
+	file, err := os.Open(fileName)
 
 	if err == nil {
 		if fileStat, err := file.Stat(); err == nil {
