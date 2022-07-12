@@ -2,7 +2,6 @@ package model
 
 import (
 	"fmt"
-	"pgsolver/pkg/node"
 	"pgsolver/pkg/prettier"
 )
 
@@ -11,14 +10,13 @@ import (
 type Model struct {
 	voltage  map[string]float64
 	current  map[string]float64
-	nodes    map[string]*node.Node
+	nodes    map[string]*Node
 	maxSteps int
 	e        float64
 }
 
-
 // Craete instance of Model
-func NewModel(voltage map[string]float64, current map[string]float64, nodes map[string]*node.Node, maxSteps int, e float64) *Model {
+func NewModel(voltage map[string]float64, current map[string]float64, nodes map[string]*Node, maxSteps int, e float64) *Model {
 	model := &Model{voltage: voltage, current: current, nodes: nodes, maxSteps: maxSteps, e: e}
 	return model
 }

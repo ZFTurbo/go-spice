@@ -120,7 +120,10 @@ func (prettier *Prettier) Info(messages map[string]interface{}) {
 func (prettier *Prettier) Error(massage string, err error) {
 	fmt.Printf("\n%s\n%s", massage, prettier.Red)
 	fmt.Println("\n", prettier.Reset)
-	log.Fatal(err)
+
+	if err != nil {
+		log.Fatal(err)
+	}
 }
 
 // Print end of the programm and show exeqution time.

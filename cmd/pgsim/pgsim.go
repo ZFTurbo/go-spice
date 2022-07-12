@@ -2,10 +2,9 @@ package main
 
 import (
 	"flag"
-	"pgsolver/pkg/extractor"
+	"pgsolver/pkg/dios"
 	"pgsolver/pkg/model"
 	"pgsolver/pkg/prettier"
-	"pgsolver/pkg/writer"
 )
 
 func main() {
@@ -21,7 +20,7 @@ func main() {
 	consPrettier.Info(map[string]interface{}{"Input File: ": *inFilePath, "Output File: ": *outFilePath, "Precicion: ": *e, "Max steps: ": *maxSteps})
 	consPrettier.SetTimer()
 
-	voltage, current, nodes, err := extractor.Extract(*inFilePath)
+	voltage, current, nodes, err := dios.Extract(*inFilePath)
 
 	if err != nil {
 		consPrettier.Error("File extraction error.", err)
@@ -32,7 +31,7 @@ func main() {
 		nodeBasedModel.Init()
 		nodeBasedModel.Modeling()
 
-		writer.WriteLogs(nodes, *outFilePath)
+		dios.WriteLogs(nodes, *outFilePath)
 
 		consPrettier.End()
 	}

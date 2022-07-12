@@ -1,14 +1,14 @@
-package writer
+package dios
 
 import (
 	"os"
-	"pgsolver/pkg/node"
+	"pgsolver/pkg/model"
 	"pgsolver/pkg/prettier"
 	"strconv"
 )
 
 // Writes solution in file
-func WriteLogs(nodes map[string]*node.Node, fileName string) {
+func WriteLogs(nodes map[string]*model.Node, fileName string) {
 	consPrettier := prettier.NewPrettier()
 	bar := consPrettier.DefaultBar(len(nodes), "Writing logs...")
 

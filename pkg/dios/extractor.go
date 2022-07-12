@@ -1,11 +1,11 @@
-package extractor
+package dios
 
 import (
 	"bufio"
 	"errors"
 	"fmt"
 	"os"
-	"pgsolver/pkg/node"
+	"pgsolver/pkg/model"
 	"pgsolver/pkg/prettier"
 	"strconv"
 	"strings"
@@ -13,12 +13,12 @@ import (
 
 // Extract all data from spice net list.
 // Return voltage, current, node maps.
-func Extract(fileName string) (map[string]float64, map[string]float64, map[string]*node.Node, error) {
+func Extract(fileName string) (map[string]float64, map[string]float64, map[string]*model.Node, error) {
 
 	consPrettier := prettier.NewPrettier()
 	voltage := make(map[string]float64)
 	current := make(map[string]float64)
-	nodes := make(map[string]*node.Node)
+	nodes := make(map[string]*model.Node)
 
 	file, err := os.Open(fileName)
 
@@ -80,26 +80,26 @@ func Extract(fileName string) (map[string]float64, map[string]float64, map[strin
 								entryNode.ConnectedNodes = append(entryNode.ConnectedNodes, splitedLine[2])
 								entryNode.ConnectedRes = append(entryNode.ConnectedRes, entryRes)
 							} else {
-								nodes[splitedLine[1]] = node.NewNode(splitedLine[1], splitedLine[2], entryRes)
+								nodes[splitedLine[1]] = model.NewNode(splitedLine[1], splitedLine[2], entryRes)
 							}
 
 							if entryNode, found := nodes[splitedLine[2]]; found {
 								entryNode.ConnectedNodes = append(entryNode.ConnectedNodes, splitedLine[1])
 								entryNode.ConnectedRes = append(entryNode.ConnectedRes, entryRes)
 							} else {
-								nodes[splitedLine[2]] = node.NewNode(splitedLine[2], splitedLine[1], entryRes)
+								nodes[splitedLine[2]] = model.NewNode(splitedLine[2], splitedLine[1], entryRes)
 							}
 						} else {
 							if entryVia, found := nodes[splitedLine[1]]; found {
 								entryVia.Viases = append(entryVia.Viases, splitedLine[2])
 							} else {
-								nodes[splitedLine[1]] = node.NewVia(splitedLine[1], splitedLine[2])
+								nodes[splitedLine[1]] = model.NewVia(splitedLine[1], splitedLine[2])
 							}
 
 							if entryVia, found := nodes[splitedLine[2]]; found {
 								entryVia.Viases = append(entryVia.Viases, splitedLine[1])
 							} else {
-								nodes[splitedLine[2]] = node.NewVia(splitedLine[2], splitedLine[1])
+								nodes[splitedLine[2]] = model.NewVia(splitedLine[2], splitedLine[1])
 							}
 						}
 					} else {
