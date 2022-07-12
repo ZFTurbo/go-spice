@@ -6,6 +6,8 @@ import (
 	"runtime"
 	"strconv"
 	"time"
+
+	"github.com/schollz/progressbar/v3"
 )
 
 // Prettier formate for console output
@@ -19,12 +21,13 @@ type Prettier struct {
 	Cyan   string
 	Gray   string
 	White  string
-	timer  time.Time
+	timer  interface{}
 }
 
 // Create new instance of Prettier.
 func NewPrettier() *Prettier {
 	prettier := &Prettier{}
+	prettier.timer = nil
 
 	if runtime.GOOS == "windows" {
 		prettier.Reset = ""
@@ -48,17 +51,49 @@ func NewPrettier() *Prettier {
 		prettier.White = "\033[97m"
 	}
 
-	prettier.timer = time.Now()
-
 	return prettier
 }
 
-// Start yout project and start time clock.
+// Start your project and start time clock.
 func (prettier *Prettier) Start(projectName string, projectVersion string, projectAuthor string) {
 	fmt.Printf("%s\n==================== %s ====================\n", prettier.Green, projectName)
 	fmt.Printf("Version: %s\n", projectVersion)
 	fmt.Printf("Author: %s\n", projectAuthor)
 	fmt.Printf("Licence: MIT %s\n\n", prettier.Reset)
+}
+
+// Set timer for your project
+func (prettier *Prettier) SetTimer() {
+	prettier.timer = time.Now()
+}
+
+// Show time from timer start
+func (prettier *Prettier) ShowTime() {
+	if entryTimer, ok := prettier.timer.(time.Time); ok {
+		fmt.Printf("%s\nTime past from start: %f\n", prettier.Cyan, time.Now().Sub(entryTimer).Seconds())
+	} else {
+		fmt.Printf("\n%s\n%s", "Timer is not set!\nUse prettier.SetTimer().", prettier.Red)
+		log.Fatal()
+	}
+}
+
+// Create default progress bar
+func (prettier *Prettier) DefaultBar(steps int, barName string) *progressbar.ProgressBar {
+	bar := progressbar.NewOptions(steps,
+		progressbar.OptionEnableColorCodes(true),
+		progressbar.OptionSetRenderBlankState(true),
+		progressbar.OptionShowBytes(true),
+		progressbar.OptionSetWidth(30),
+		progressbar.OptionSetDescription("[cyan]"+barName+"[reset]"),
+		progressbar.OptionSetTheme(progressbar.Theme{
+			Saucer:        "[green]=[reset]",
+			SaucerHead:    "[red]>[reset]",
+			SaucerPadding: " ",
+			BarStart:      "[",
+			BarEnd:        "]",
+		}))
+
+	return bar
 }
 
 // Print info block.
@@ -90,6 +125,8 @@ func (prettier *Prettier) Error(massage string, err error) {
 
 // Print end of the programm and show exeqution time.
 func (prettier *Prettier) End() {
-	fmt.Printf("%s\nExeqution time in seconds: %f\n", prettier.Cyan, time.Now().Sub(prettier.timer).Seconds())
+	if entryTimer, ok := prettier.timer.(time.Time); ok {
+		fmt.Printf("%s\nExeqution time in seconds: %f\n", prettier.Cyan, time.Now().Sub(entryTimer).Seconds())
+	}
 	fmt.Printf("%s\n====================END====================\n\n%s", prettier.Green, prettier.Reset)
 }

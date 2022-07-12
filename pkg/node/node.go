@@ -18,6 +18,21 @@ type Node struct {
 	ViasesNodes    []interface{}
 }
 
+// Creates node instanse and return its address.
+func NewNode(name string, end_start interface{}, resistance float64) *Node {
+	node := &Node{}
+	node.ConnectedNodes = append(node.ConnectedNodes, end_start)
+	node.ConnectedRes = append(node.ConnectedRes, resistance)
+	return node
+}
+
+// Creates via instanse and return its address.
+func NewVia(name string, via_name string) *Node {
+	via := &Node{}
+	via.Viases = append(via.Viases, via_name)
+	return via
+}
+
 // Calculates the sum of the elements of an array of the form 1/x.
 // Where x is element of the array.
 func SumReverse(array []float64) float64 {
@@ -81,16 +96,4 @@ func (n *Node) Step(e float64) int {
 	}
 
 	return 0
-}
-
-// Creates node instanse and return its address.
-func NewNode(name string, end_start interface{}, resistance float64) *Node {
-	node := &Node{name, 0.0, 0.0, 0.0, 0.0, []interface{}{end_start}, []float64{resistance}, []string{}, []float64{}, []interface{}{}}
-	return node
-}
-
-// Creates via instanse and return its address.
-func NewVia(name string, via_name string) *Node {
-	via := &Node{name, 0.0, 0.0, 0.0, 0.0, []interface{}{}, []float64{}, []string{via_name}, []float64{}, []interface{}{}}
-	return via
 }
