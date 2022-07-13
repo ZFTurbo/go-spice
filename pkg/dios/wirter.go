@@ -9,13 +9,12 @@ import (
 
 // Writes solution in file
 func WriteLogs(nodes map[string]*model.Node, fileName string) {
-	consPrettier := prettier.NewPrettier()
-	bar := consPrettier.DefaultBar(len(nodes), "Writing logs...")
+	bar := prettier.DefaultBar(len(nodes), "Writing logs...")
 
 	outFile, err := os.Create(fileName)
 
 	if err != nil {
-		consPrettier.Error("Create output file error.", err)
+		prettier.Error("Create output file error.", err)
 	} else {
 		for key, nodeInstance := range nodes {
 			outFile.WriteString(key + " ")

@@ -15,7 +15,6 @@ import (
 // Return voltage, current, node maps.
 func Extract(fileName string) (map[string]float64, map[string]float64, map[string]*model.Node, error) {
 
-	consPrettier := prettier.NewPrettier()
 	voltage := make(map[string]float64)
 	current := make(map[string]float64)
 	nodes := make(map[string]*model.Node)
@@ -24,7 +23,7 @@ func Extract(fileName string) (map[string]float64, map[string]float64, map[strin
 
 	if err == nil {
 		if fileStat, err := file.Stat(); err == nil {
-			bar := consPrettier.DefaultBar(int(fileStat.Size()), "Extraction from input file...")
+			bar := prettier.DefaultBar(int(fileStat.Size()), "Extraction from input file...")
 			scanner := bufio.NewScanner(file) // The file scanner
 
 			// Reading input file

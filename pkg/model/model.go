@@ -25,7 +25,7 @@ func NewModel(voltage map[string]float64, current map[string]float64, nodes map[
 // Connect all nodes with each others.
 // Calculate inital state for each modeling node.
 func (model *Model) Prepare() {
-	bar := prettier.NewPrettier().DefaultBar(len(model.nodes), "Preparing the model...")
+	bar := prettier.DefaultBar(len(model.nodes), "Preparing the model...")
 
 	// Replace node names by node instance also voltage and current sources
 	for key, nodeInstance := range model.nodes {
@@ -93,7 +93,7 @@ func (model *Model) Prepare() {
 // Initializing model.
 // Set default values, stack nodes and res.
 func (model *Model) Init() {
-	bar := prettier.NewPrettier().DefaultBar(len(model.nodes), "Initializing the model...")
+	bar := prettier.DefaultBar(len(model.nodes), "Initializing the model...")
 
 	for _, nodeInstance := range model.nodes {
 		nodeInstance.Init()
@@ -107,7 +107,7 @@ func (model *Model) Init() {
 // Modeling system of nodes.
 // Modeling last until max steps achived.
 func (model *Model) Modeling() {
-	bar := prettier.NewPrettier().DefaultBar(len(model.nodes)*model.maxSteps, "Solving the model...")
+	bar := prettier.DefaultBar(len(model.nodes)*model.maxSteps, "Solving the model...")
 	total := 0
 
 	for i := 0; i < model.maxSteps; i++ {
