@@ -17,7 +17,7 @@ func main() {
 
 	flag.Parse()
 
-	prettier.Start("PGSim", "1.0.0", "Ilya Shafeev")
+	prettier.Start("PGSim", "1.0.5", "Ilya Shafeev")
 	prettier.Info(map[string]interface{}{"Input File: ": *inFilePath, "Output File: ": *outFilePath, "Precicion: ": *e, "Max steps: ": *maxSteps})
 
 	voltage, current, nodes, err := dios.Extract(*inFilePath)

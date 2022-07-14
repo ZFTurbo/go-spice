@@ -3,5 +3,5 @@
 **/*.sh
 **/*.DS_Store
 ._*
-**/go.sum
+**/*.sum
 /assets

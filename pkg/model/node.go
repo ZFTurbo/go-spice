@@ -89,7 +89,7 @@ func (n *Node) Step(e float64) int {
 		}
 	}
 
-	n.V = sum/n.SumRes - n.I/n.SumRes
+	n.V = sum/n.SumRes-n.I/n.SumRes
 
 	if math.Abs(n.V-n.PrevV) < e {
 		return 1

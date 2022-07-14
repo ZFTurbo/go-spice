@@ -79,14 +79,18 @@ func Extract(fileName string) (map[string]float64, map[string]float64, map[strin
 								entryNode.ConnectedNodes = append(entryNode.ConnectedNodes, splitedLine[2])
 								entryNode.ConnectedRes = append(entryNode.ConnectedRes, entryRes)
 							} else {
-								nodes[splitedLine[1]] = model.NewNode(splitedLine[1], splitedLine[2], entryRes)
+								if splitedLine[1][1] != 'X' {
+									nodes[splitedLine[1]] = model.NewNode(splitedLine[1], splitedLine[2], entryRes)
+								}
 							}
 
 							if entryNode, found := nodes[splitedLine[2]]; found {
 								entryNode.ConnectedNodes = append(entryNode.ConnectedNodes, splitedLine[1])
 								entryNode.ConnectedRes = append(entryNode.ConnectedRes, entryRes)
 							} else {
-								nodes[splitedLine[2]] = model.NewNode(splitedLine[2], splitedLine[1], entryRes)
+								if splitedLine[2][1] != 'X' {
+									nodes[splitedLine[2]] = model.NewNode(splitedLine[2], splitedLine[1], entryRes)
+								}
 							}
 						} else {
 							if entryVia, found := nodes[splitedLine[1]]; found {
@@ -107,8 +111,9 @@ func Extract(fileName string) (map[string]float64, map[string]float64, map[strin
 						return nil, nil, nil, errors.New("Create node. Resistance value error.\n" + err.Error())
 					}
 
-					bar.Add(1)
 				}
+
+				bar.Add(1)
 			}
 
 			bar.Close()

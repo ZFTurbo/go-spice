@@ -19,6 +19,7 @@ func main() {
 
 	modelingNodes := make(map[string]float64) //Modeling nodes voltage value
 	sumPercentage := 0.0                      // Sum of percentage differences
+	maxDifference := 0.0
 
 	flag.Parse()
 
@@ -48,27 +49,34 @@ func main() {
 
 	// Stack difference of solution and modeling nodes
 	for scannerSolution.Scan() {
-		splitedLine := strings.Split(scannerSolution.Text(), " ")
-		if entryV, err := strconv.ParseFloat(splitedLine[2], 64); err == nil {
-			if entryNode, found := modelingNodes[splitedLine[0]]; found {
-				if entryNode != 0 && entryV != 0 {
-					if entryNode >= entryV {
-						sumPercentage += math.Abs(entryNode-entryV) / entryNode
-					} else {
-						sumPercentage += math.Abs(entryNode-entryV) / entryV
+		if scannerSolution.Text()[1] != 'X' {
+			splitedLine := strings.Split(scannerSolution.Text(), " ")
+			if entryV, err := strconv.ParseFloat(splitedLine[2], 64); err == nil {
+				if entryNode, found := modelingNodes[splitedLine[0]]; found {
+					if entryNode != 0 && entryV != 0 {
+						if entryNode >= entryV {
+							sumPercentage += math.Abs(entryNode-entryV) / entryNode
+							if math.Abs(entryNode-entryV)/entryNode > maxDifference {
+								maxDifference = math.Abs(entryNode-entryV) / entryNode
+							}
+						} else {
+							sumPercentage += math.Abs(entryNode-entryV) / entryV
+							if math.Abs(entryNode-entryV)/entryV > maxDifference {
+								maxDifference = math.Abs(entryNode-entryV) / entryV
+							}
+						}
 					}
+				} else {
+					fmt.Printf("Missing node: %s, value: %f", splitedLine[0], entryV)
 				}
 			} else {
-				fmt.Printf("Missing node: %s, value: %f", splitedLine[0], entryV)
+				log.Fatal("Value error in solution scanner.\n", err)
 			}
-		} else {
-			log.Fatal("Value error in solution scanner.\n", err)
 		}
 	}
 
-	difference := sumPercentage / float64(len(modelingNodes)) * 100 // Calculate difference of two files
-
-	fmt.Printf("\nPercentage difference: %f%%\n\n", difference)
+	fmt.Printf("\n\nAvg difference: %f%%", (sumPercentage/float64(len(modelingNodes)))*100)
+	fmt.Printf("\nMax difference: %f%%\n\n", maxDifference*100)
 
 	modelingFile.Close()
 	solutionFile.Close()
