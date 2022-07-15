@@ -108,7 +108,6 @@ func (model *Model) Init() {
 // Modeling last until max steps achived.
 func (model *Model) Modeling() {
 	bar := prettier.DefaultBar(model.maxSteps, "Solving the model...")
-	p := int(0.5 * float64(len(model.nodes)))
 	total := 0
 
 	for i := 0; i < model.maxSteps; i++ {
@@ -118,7 +117,7 @@ func (model *Model) Modeling() {
 			solvedNodes += nodeInstance.Step(model.e)
 		}
 
-		if solvedNodes < p {
+		if solvedNodes != len(model.nodes) {
 			bar.Add(1)
 			total += 1
 		} else {

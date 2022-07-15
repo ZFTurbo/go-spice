@@ -75,7 +75,7 @@ func Info(messages map[string]interface{}) {
 
 // Print error message.
 func Error(massage string, err error) {
-	fmt.Printf("\n%s\n%s", massage, Red)
+	fmt.Printf("\n%s\n%s", Red, massage)
 	fmt.Println("\n", Reset)
 
 	if err != nil {

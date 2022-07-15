@@ -13,8 +13,9 @@ import (
 
 // Extract all data from spice net list.
 // Return voltage, current, node maps.
-func Extract(fileName string) (map[string]float64, map[string]float64, map[string]*model.Node, error) {
+func Extract(fileName string) (map[string]string, map[string]float64, map[string]float64, map[string]*model.Node, error) {
 
+	res := make(map[string]string)
 	voltage := make(map[string]float64)
 	current := make(map[string]float64)
 	nodes := make(map[string]*model.Node)
@@ -25,11 +26,23 @@ func Extract(fileName string) (map[string]float64, map[string]float64, map[strin
 		if fileStat, err := file.Stat(); err == nil {
 			bar := prettier.DefaultBar(int(fileStat.Size()), "Extraction from input file...")
 			scanner := bufio.NewScanner(file) // The file scanner
+			resType := "VDD"
 
 			// Reading input file
 			for scanner.Scan() {
 				line := scanner.Text()
 				splitedLine := strings.Split(line, " ")
+
+				// Change type of resisotr gnd or vdd(vpwr)
+				if line[0] == '*' && len(splitedLine) > 2 {
+					if strings.Contains(splitedLine[2], "VDD") {
+						resType = "VDD"
+					}
+					if strings.Contains(splitedLine[2], "GND") {
+						resType = "GND"
+					}
+				}
+
 				// Find volage source
 				if line[0] == 'v' {
 					if entryV, err := strconv.ParseFloat(splitedLine[len(splitedLine)-1], 64); err == nil {
@@ -37,7 +50,7 @@ func Extract(fileName string) (map[string]float64, map[string]float64, map[strin
 					} else {
 						bar.Close()
 						fmt.Println()
-						return nil, nil, nil, errors.New("Add voltage error.\n" + err.Error())
+						return nil, nil, nil, nil, errors.New("Add voltage error.\n" + err.Error())
 					}
 				}
 
@@ -66,12 +79,15 @@ func Extract(fileName string) (map[string]float64, map[string]float64, map[strin
 					} else {
 						bar.Close()
 						fmt.Println()
-						return nil, nil, nil, errors.New("Add current ground error.\n" + err.Error())
+						return nil, nil, nil, nil, errors.New("Add current ground error.\n" + err.Error())
 					}
 				}
 
 				if (line[0] == 'r' || line[0] == 'R' || line[0] == 'V') && splitedLine[len(splitedLine)-2] != "0" {
 					if entryRes, err := strconv.ParseFloat(splitedLine[len(splitedLine)-1], 64); err == nil {
+						if line[0] == 'R' && splitedLine[1][1] == splitedLine[2][1] {
+							res[splitedLine[0]] = resType + " " + splitedLine[1] + " " + splitedLine[2]
+						}
 						// Check if resistor is via.
 						// If resistance value is too small.
 						if entryRes != 0.0 {
@@ -79,9 +95,7 @@ func Extract(fileName string) (map[string]float64, map[string]float64, map[strin
 								entryNode.ConnectedNodes = append(entryNode.ConnectedNodes, splitedLine[2])
 								entryNode.ConnectedRes = append(entryNode.ConnectedRes, entryRes)
 							} else {
-								if splitedLine[1][1] != 'X' {
-									nodes[splitedLine[1]] = model.NewNode(splitedLine[1], splitedLine[2], entryRes)
-								}
+								nodes[splitedLine[1]] = model.NewNode(splitedLine[1], splitedLine[2], entryRes)
 							}
 
 							if entryNode, found := nodes[splitedLine[2]]; found {
@@ -108,7 +122,7 @@ func Extract(fileName string) (map[string]float64, map[string]float64, map[strin
 					} else {
 						bar.Close()
 						fmt.Println()
-						return nil, nil, nil, errors.New("Create node. Resistance value error.\n" + err.Error())
+						return nil, nil, nil, nil, errors.New("Create node. Resistance value error.\n" + err.Error())
 					}
 
 				}
@@ -118,11 +132,11 @@ func Extract(fileName string) (map[string]float64, map[string]float64, map[strin
 
 			bar.Close()
 			fmt.Println()
-			return voltage, current, nodes, nil
+			return res, voltage, current, nodes, nil
 		} else {
-			return nil, nil, nil, errors.New("Can't get size of file!\n" + err.Error())
+			return nil, nil, nil, nil, errors.New("Can't get size of file!\n" + err.Error())
 		}
 	} else {
-		return nil, nil, nil, errors.New("Can't open file!\n" + err.Error())
+		return nil, nil, nil, nil, errors.New("Can't open file!\n" + err.Error())
 	}
 }
