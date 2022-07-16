@@ -19,19 +19,15 @@ func main() {
 	prettier.Start("PGSim", "1.1.0", "Ilya Shafeev")
 	prettier.Info(map[string]interface{}{"Input File: ": *inFilePath, "Precicion: ": *e, "Max steps: ": *maxSteps})
 
-	res, voltage, current, nodes, err := dios.Extract(*inFilePath)
+	res, voltage, current, nodes := dios.Extract(*inFilePath)
+	nodeBasedModel := model.NewModel(voltage, current, nodes, *maxSteps, *e)
 
-	if err != nil {
-		prettier.Error("File extraction error.", err)
-	} else {
-		nodeBasedModel := model.NewModel(voltage, current, nodes, *maxSteps, *e)
+	nodeBasedModel.Prepare()
+	nodeBasedModel.Init()
+	nodeBasedModel.Modeling()
 
-		nodeBasedModel.Prepare()
-		nodeBasedModel.Init()
-		nodeBasedModel.Modeling()
+	dios.WriteLogs(nodes, res, *inFilePath)
 
-		dios.WriteLogs(nodes, res, *inFilePath)
+	prettier.End(timer)
 
-		prettier.End(timer)
-	}
 }
