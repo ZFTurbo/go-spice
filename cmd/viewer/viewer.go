@@ -53,8 +53,9 @@ func main() {
 
 	splitedPath := strings.Split(*inFilePath, "/")
 	projName := strings.Split(splitedPath[len(splitedPath)-1], ".")[0]
+	resultsPath := strings.Split(*inFilePath, projName)[0]
 
-	f, _ := os.Create("./results/" + projName + "/" + projName + ".png")
+	f, _ := os.Create(resultsPath + projName + "/" + projName + ".png")
 	png.Encode(f, canvas)
 }
 

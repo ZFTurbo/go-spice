@@ -27,8 +27,8 @@ func GetColor(max float64, min float64, val float64, alph float64) color.Color {
 // Craete new canvas for image.
 func NewCanvas(size [2]int) *image.RGBA {
 	// Add padding to image
-	size[0] += 20
-	size[1] += 20
+	size[0] += 10
+	size[1] += 10
 
 	canvas := image.NewRGBA(image.Rectangle{image.Point{0, 0}, image.Point{size[0], size[1]}})
 

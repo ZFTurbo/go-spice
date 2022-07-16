@@ -20,11 +20,17 @@ const Gray = "\033[37m"
 const White = "\033[97m"
 
 // Start your project and start time clock.
-func Start(projectName string, projectVersion string, projectAuthor string) {
+func Start(projectName string, projectVersion string, projectAuthor string, licence string) {
 	fmt.Printf("%s\n==================== %s ====================\n", Green, projectName)
-	fmt.Printf("Version: %s\n", projectVersion)
-	fmt.Printf("Author: %s\n", projectAuthor)
-	fmt.Printf("Licence: MIT %s\n\n", Reset)
+	if len(projectVersion) > 0 {
+		fmt.Printf("Version: %s\n", projectVersion)
+	}
+	if len(projectAuthor) > 0 {
+		fmt.Printf("Author: %s\n", projectAuthor)
+	}
+	if len(licence) > 0 {
+		fmt.Printf("Licence: %s%s\n\n", licence, Reset)
+	}
 }
 
 // Show time from timer start

@@ -47,7 +47,7 @@ func Extract(fileName string) (map[string]string, map[string]float64, map[string
 
 			// Find current source
 			if line[0] == 'i' {
-				iValue := utils.ParseFloat(splitedLine[len(splitedLine)-2])
+				iValue := utils.ParseFloat(splitedLine[len(splitedLine)-1])
 				// By default use as node name as first connection of current source, not ground connection
 				if strings.Contains(splitedLine[0], "_v") {
 					if entryCurrent, found := current[splitedLine[1]]; found {

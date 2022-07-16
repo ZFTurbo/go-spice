@@ -11,7 +11,7 @@ import (
 )
 
 func main() {
-	prettier.Start("Comparing files", "1.0.1", "Ilya Shafeev")
+	prettier.Start("Comparing files", "", "", "")
 
 	modelingFilePath := flag.String("m", "modeling.solution", "Modeling file") // Path to modeling file
 	solutionFilePath := flag.String("s", "solution.solution", "Solution file") // Path to solution file

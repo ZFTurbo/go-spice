@@ -11,15 +11,15 @@ import (
 )
 
 // Writes solution in file
-func WriteLogs(nodes map[string]*model.Node, res map[string]string, fileName string) {
-	splitedPath := strings.Split(fileName, "/")
+func WriteLogs(nodes map[string]*model.Node, res map[string]string, filePath string, resultsPath string) {
+	splitedPath := strings.Split(filePath, "/")
 	projName := strings.Split(splitedPath[len(splitedPath)-1], ".")[0]
 
-	utils.CreateFolder("./results")
-	utils.CreateFolder("./results/" + projName)
+	utils.CreateFolder(resultsPath)
+	utils.CreateFolder(resultsPath + "/" + projName)
 
 	bar := prettier.DefaultBar(len(nodes)+2*len(res), "Writing logs...")
-	outFileNodeVal := utils.CreateFile("./results/" + projName + "/" + projName + ".solution")
+	outFileNodeVal := utils.CreateFile(resultsPath + "/" + projName + "/" + projName + ".solution")
 
 	var size [2]int
 
@@ -82,9 +82,9 @@ func WriteLogs(nodes map[string]*model.Node, res map[string]string, fileName str
 
 	sort.Strings(keys)
 
-	outFileResIRDrop := utils.CreateFile("./results/" + projName + "/" + projName + ".plot")
+	outFileResIRDrop := utils.CreateFile(resultsPath + "/" + projName + "/" + projName + ".plot")
 
-	outFileResIRDrop.WriteString("# Proj_Name " + fileName + "\n")
+	outFileResIRDrop.WriteString("# Proj_Name " + filePath + "\n")
 	outFileResIRDrop.WriteString("# Size " + strconv.FormatInt(int64(size[0]), 10) + " " + strconv.FormatInt(int64(size[1]), 10) + "\n")
 	outFileResIRDrop.WriteString("# Max_Val " + strconv.FormatFloat(maxDrop, 'e', 8, 64) + "\n")
 	outFileResIRDrop.WriteString("# Min_Val " + strconv.FormatFloat(minDrop, 'e', 8, 64) + "\n")
