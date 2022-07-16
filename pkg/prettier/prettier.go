@@ -30,7 +30,7 @@ func Start(projectName string, projectVersion string, projectAuthor string) {
 // Show time from timer start
 func ShowTime(timer ...time.Time) {
 	if len(timer) > 0 {
-		fmt.Printf("%s\nTime past from start: %f\n", Cyan, time.Now().Sub(timer[0]).Seconds())
+		fmt.Printf("%s\nTime past from start: %f\n", Cyan, time.Since(timer[0]).Seconds())
 	}
 }
 
@@ -73,9 +73,14 @@ func Info(messages map[string]interface{}) {
 	fmt.Println()
 }
 
+func Warrning(message string) {
+	fmt.Printf("\n%s\n%s", Yellow, message)
+	fmt.Println(Reset)
+}
+
 // Print error message and exit if error not nil.
-func Error(massage string, err error) {
-	fmt.Printf("\n%s\n%s", Red, massage)
+func Error(message string, err error) {
+	fmt.Printf("\n%s\n%s", Red, message)
 	fmt.Println(Reset)
 	if err != nil {
 		log.Fatal(err)
@@ -85,7 +90,9 @@ func Error(massage string, err error) {
 // Print end of the programm and show exeqution time.
 func End(timer ...time.Time) {
 	if len(timer) > 0 {
-		fmt.Printf("%s\n\nExeqution time in seconds: %f", Green, time.Now().Sub(timer[0]).Seconds())
+		fmt.Printf("%s\n\nExeqution time in seconds: %f", Green, time.Since(timer[0]).Seconds())
+		fmt.Printf("%s\n====================END====================\n\n%s", Green, Reset)
+	} else {
+		fmt.Printf("%s====================END====================\n\n%s", Green, Reset)
 	}
-	fmt.Printf("%s\n====================END====================\n\n%s", Green, Reset)
 }
