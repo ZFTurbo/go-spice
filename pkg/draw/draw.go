@@ -6,19 +6,19 @@ import (
 )
 
 // Create new color for heat map.
-func GetColor(max float64, min float64, val float64, alph float64) color.Color {
+func GetColor(max float64, min float64, val float64, alph float64) color.NRGBA {
 	h := max / 4
 
 	if val < h {
-		return color.NRGBA{0, uint8(val / h * 255*alph), uint8(255*alph), 255}
+		return color.NRGBA{0, uint8(val / h * 255 * alph), uint8(255 * alph), 255}
 	} else {
 		if val < h*2 {
-			return color.NRGBA{0, uint8(255*alph), uint8((1 - (val-h)/h) * 255*alph), 255}
+			return color.NRGBA{0, uint8(255 * alph), uint8((1 - (val-h)/h) * 255 * alph), 255}
 		} else {
 			if val < h*3 {
-				return color.NRGBA{uint8((val - h*2) / h * 255*alph), uint8(255*alph), 0, 255}
+				return color.NRGBA{uint8((val - h*2) / h * 255 * alph), uint8(255 * alph), 0, 255}
 			} else {
-				return color.NRGBA{uint8(255*alph), uint8((1 - (val - h*3)) / h * 255*alph), 0, 255}
+				return color.NRGBA{uint8(255 * alph), uint8((1 - (val - h*3)) / h * 255 * alph), 0, 255}
 			}
 		}
 	}

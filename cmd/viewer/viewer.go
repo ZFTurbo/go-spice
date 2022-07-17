@@ -58,7 +58,3 @@ func main() {
 	f, _ := os.Create(resultsPath + projName + "/" + projName + ".png")
 	png.Encode(f, canvas)
 }
-
-func OpenFile(s string) {
-	panic("unimplemented")
-}
