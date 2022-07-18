@@ -12,7 +12,6 @@ import (
 // Extract all data from spice net list.
 // Return voltage, current, node maps.
 func Extract(fileName string) (map[string]string, map[string]float64, map[string]float64, map[string]*model.Node) {
-
 	res := make(map[string]string)
 	voltage := make(map[string]float64)
 	current := make(map[string]float64)
@@ -47,7 +46,7 @@ func Extract(fileName string) (map[string]string, map[string]float64, map[string
 
 			// Find current source
 			if line[0] == 'i' {
-				iValue := utils.ParseFloat(splitedLine[len(splitedLine)-1])
+				iValue := utils.ParseFloat(splitedLine[len(splitedLine)-2])
 				// By default use as node name as first connection of current source, not ground connection
 				if strings.Contains(splitedLine[0], "_v") {
 					if entryCurrent, found := current[splitedLine[1]]; found {
