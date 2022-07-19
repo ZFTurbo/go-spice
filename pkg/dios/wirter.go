@@ -24,7 +24,7 @@ func WriteLogs(nodes map[string]*model.Node, res map[string]string, volage map[s
 	var size [2]int
 
 	for key, nodeInstance := range nodes {
-		outFileNodeVal.WriteString(key + " " + strconv.FormatFloat(nodeInstance.V, 'e', 8, 64) + "\n")
+		outFileNodeVal.WriteString(key + " " + strconv.FormatFloat(nodeInstance.GetVoltage(), 'e', 8, 64) + "\n")
 		splitedKey := strings.Split(key, "_")
 
 		newX := utils.ParseInt(splitedKey[len(splitedKey)-2])
@@ -60,11 +60,11 @@ func WriteLogs(nodes map[string]*model.Node, res map[string]string, volage map[s
 		splitedR := strings.Split(r, " ")
 
 		if entryNode, foundFirst := nodes[splitedR[1]]; foundFirst {
-			firstVal = entryNode.V
+			firstVal = entryNode.GetVoltage()
 		}
 
 		if entryNode, foundSecond := nodes[splitedR[2]]; foundSecond {
-			secondVal = entryNode.V
+			secondVal = entryNode.GetVoltage()
 		}
 
 		drop := math.Abs(firstVal - secondVal)

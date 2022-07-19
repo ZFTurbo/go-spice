@@ -78,27 +78,27 @@ func Extract(fileName string) (map[string]string, map[string]float64, map[string
 				// If resistance value is too small.
 				if resVal != 0.0 {
 					if entryNode, found := nodes[splitedLine[1]]; found {
-						entryNode.ConnectedNodes = append(entryNode.ConnectedNodes, splitedLine[2])
-						entryNode.ConnectedRes = append(entryNode.ConnectedRes, resVal)
+						entryNode.AddNode(splitedLine[2])
+						entryNode.AddRes(resVal)
 					} else {
 						nodes[splitedLine[1]] = model.NewNode(splitedLine[1], splitedLine[2], resVal)
 					}
 
 					if entryNode, found := nodes[splitedLine[2]]; found {
-						entryNode.ConnectedNodes = append(entryNode.ConnectedNodes, splitedLine[1])
-						entryNode.ConnectedRes = append(entryNode.ConnectedRes, resVal)
+						entryNode.AddNode(splitedLine[1])
+						entryNode.AddRes(resVal)
 					} else {
 						nodes[splitedLine[2]] = model.NewNode(splitedLine[2], splitedLine[1], resVal)
 					}
 				} else {
 					if entryVia, found := nodes[splitedLine[1]]; found {
-						entryVia.Viases = append(entryVia.Viases, splitedLine[2])
+						entryVia.AddVia(splitedLine[2])
 					} else {
 						nodes[splitedLine[1]] = model.NewVia(splitedLine[1], splitedLine[2])
 					}
 
 					if entryVia, found := nodes[splitedLine[2]]; found {
-						entryVia.Viases = append(entryVia.Viases, splitedLine[1])
+						entryVia.AddVia(splitedLine[1])
 					} else {
 						nodes[splitedLine[2]] = model.NewVia(splitedLine[2], splitedLine[1])
 					}
