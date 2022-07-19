@@ -27,8 +27,8 @@ func WriteLogs(nodes map[string]*model.Node, res map[string]string, filePath str
 		outFileNodeVal.WriteString(key + " " + strconv.FormatFloat(nodeInstance.V, 'e', 8, 64) + "\n")
 		splitedKey := strings.Split(key, "_")
 
-		newX := utils.ParseInt(splitedKey[1])
-		newY := utils.ParseInt(splitedKey[2])
+		newX := utils.ParseInt(splitedKey[len(splitedKey)-2])
+		newY := utils.ParseInt(splitedKey[len(splitedKey)-1])
 
 		if newX > size[0] {
 			size[0] = newX

@@ -88,9 +88,7 @@ func Extract(fileName string) (map[string]string, map[string]float64, map[string
 						entryNode.ConnectedNodes = append(entryNode.ConnectedNodes, splitedLine[1])
 						entryNode.ConnectedRes = append(entryNode.ConnectedRes, resVal)
 					} else {
-						if splitedLine[2][1] != 'X' {
-							nodes[splitedLine[2]] = model.NewNode(splitedLine[2], splitedLine[1], resVal)
-						}
+						nodes[splitedLine[2]] = model.NewNode(splitedLine[2], splitedLine[1], resVal)
 					}
 				} else {
 					if entryVia, found := nodes[splitedLine[1]]; found {

@@ -30,7 +30,7 @@ func NewCanvas(size [2]int) *image.RGBA {
 	size[0] += 10
 	size[1] += 10
 
-	canvas := image.NewRGBA(image.Rectangle{image.Point{0, 0}, image.Point{size[0], size[1]}})
+	canvas := image.NewRGBA(image.Rectangle{image.Point{}, image.Point{size[0], size[1]}})
 
 	for x := 0; x < size[0]; x++ {
 		for y := 0; y < size[1]; y++ {

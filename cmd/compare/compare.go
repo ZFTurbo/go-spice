@@ -37,7 +37,6 @@ func main() {
 
 	// Stack difference of solution and modeling nodes
 	for scannerSolution.Scan() {
-		if scannerSolution.Text()[1] != 'X' {
 			splitedLine := strings.Split(scannerSolution.Text(), " ")
 			voltageVal := utils.ParseFloat(splitedLine[2])
 
@@ -58,13 +57,12 @@ func main() {
 			} else {
 				fmt.Printf("\n%sMissing node: %s, value: %f%s\n", prettier.Red, splitedLine[0], voltageVal, prettier.Reset)
 			}
-		}
 	}
 
 	modelingFile.Close()
 	solutionFile.Close()
 
 	fmt.Println()
-	prettier.Info(map[string]interface{}{"Avg difference: ": (sumPercentage / float64(len(modelingNodes))) * 100, "Max difference: ": maxDifference * 100})
+	prettier.Info(map[string]interface{}{"Avg difference %: ": (sumPercentage / float64(len(modelingNodes))) * 100, "Max difference %: ": maxDifference * 100})
 	prettier.End()
 }

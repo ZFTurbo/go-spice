@@ -68,7 +68,11 @@ func Info(messages map[string]interface{}) {
 			fmt.Println(key + entryMessage)
 		}
 		if entryMessage, ok := value.(float64); ok {
-			fmt.Println(key + strconv.FormatFloat(entryMessage, 'e', 8, 64))
+			if entryMessage > 1e5 || entryMessage < 1e-3 {
+				fmt.Println(key + strconv.FormatFloat(entryMessage, 'e', 8, 64))
+			} else {
+				fmt.Println(key + strconv.FormatFloat(entryMessage, 'f', 8, 64))
+			}
 		}
 		if entryMessage, ok := value.(int); ok {
 			fmt.Println(key + strconv.FormatInt(int64(entryMessage), 10))

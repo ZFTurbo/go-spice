@@ -29,58 +29,65 @@ func (model *Model) Prepare() {
 
 	// Replace node names by node instance also voltage and current sources
 	for key, nodeInstance := range model.nodes {
-		if entryCurrent, found := model.current[key]; found {
-			nodeInstance.I += entryCurrent
-		}
+		if entryV, found := model.voltage[key]; !found {
+			nodeInstance.Modeling = true
 
-		if len(nodeInstance.Viases) == 0 {
-			for i := 0; i < len(nodeInstance.ConnectedNodes); i++ {
-				if entryNode, ok := nodeInstance.ConnectedNodes[i].(string); ok {
-					if entryV, found := model.voltage[entryNode]; found {
-						nodeInstance.ConnectedNodes[i] = entryV
-					} else {
-						if entryNode, found := model.nodes[entryNode]; found {
-							nodeInstance.ConnectedNodes[i] = entryNode
+			if entryCurrent, found := model.current[key]; found {
+				nodeInstance.I += entryCurrent
+			}
+
+			if len(nodeInstance.Viases) == 0 {
+				for i := 0; i < len(nodeInstance.ConnectedNodes); i++ {
+					if entryNode, ok := nodeInstance.ConnectedNodes[i].(string); ok {
+						if entryV, found := model.voltage[entryNode]; found {
+							nodeInstance.ConnectedNodes[i] = entryV
+						} else {
+							if entryNode, found := model.nodes[entryNode]; found {
+								nodeInstance.ConnectedNodes[i] = entryNode
+							}
 						}
 					}
 				}
+			} else {
+				for i := 0; i < len(nodeInstance.Viases); i++ {
+					if entryNode, found := model.nodes[nodeInstance.Viases[i]]; found {
+						nodeInstance.ViasesNodes = append(nodeInstance.ViasesNodes, entryNode.ConnectedNodes...)
+						nodeInstance.ViasesRes = append(nodeInstance.ViasesRes, entryNode.ConnectedRes...)
+					}
+
+					if entryCurrent, found := model.current[nodeInstance.Viases[i]]; found {
+						nodeInstance.I += entryCurrent
+					}
+				}
+
+				for i := 0; i < len(nodeInstance.ConnectedNodes); i++ {
+					if entryNode, ok := nodeInstance.ConnectedNodes[i].(string); ok {
+						if entryV, found := model.voltage[entryNode]; found {
+							nodeInstance.ConnectedNodes[i] = entryV
+						} else {
+							if entryNode, found := model.nodes[entryNode]; found {
+								nodeInstance.ConnectedNodes[i] = entryNode
+							}
+						}
+					}
+				}
+
+				for i := 0; i < len(nodeInstance.ViasesNodes); i++ {
+					if entryNode, ok := nodeInstance.ViasesNodes[i].(string); ok {
+						if entryV, found := model.voltage[entryNode]; found {
+							nodeInstance.ViasesNodes[i] = entryV
+						} else {
+							if entryNode, found := model.nodes[entryNode]; found {
+								nodeInstance.ViasesNodes[i] = entryNode
+							}
+						}
+					}
+				}
+
 			}
 		} else {
-			for i := 0; i < len(nodeInstance.Viases); i++ {
-				if entryNode, found := model.nodes[nodeInstance.Viases[i]]; found {
-					nodeInstance.ViasesNodes = append(nodeInstance.ViasesNodes, entryNode.ConnectedNodes...)
-					nodeInstance.ViasesRes = append(nodeInstance.ViasesRes, entryNode.ConnectedRes...)
-				}
-
-				if entryCurrent, found := model.current[nodeInstance.Viases[i]]; found {
-					nodeInstance.I += entryCurrent
-				}
-			}
-
-			for i := 0; i < len(nodeInstance.ConnectedNodes); i++ {
-				if entryNode, ok := nodeInstance.ConnectedNodes[i].(string); ok {
-					if entryV, found := model.voltage[entryNode]; found {
-						nodeInstance.ConnectedNodes[i] = entryV
-					} else {
-						if entryNode, found := model.nodes[entryNode]; found {
-							nodeInstance.ConnectedNodes[i] = entryNode
-						}
-					}
-				}
-			}
-
-			for i := 0; i < len(nodeInstance.ViasesNodes); i++ {
-				if entryNode, ok := nodeInstance.ViasesNodes[i].(string); ok {
-					if entryV, found := model.voltage[entryNode]; found {
-						nodeInstance.ViasesNodes[i] = entryV
-					} else {
-						if entryNode, found := model.nodes[entryNode]; found {
-							nodeInstance.ViasesNodes[i] = entryNode
-						}
-					}
-				}
-			}
-
+			nodeInstance.Modeling = false
+			nodeInstance.V = entryV
 		}
 
 		bar.Add(1)
