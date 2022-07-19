@@ -29,9 +29,7 @@ func (model *Model) Prepare() {
 
 	// Replace node names by node instance also voltage and current sources
 	for key, nodeInstance := range model.nodes {
-		if entryV, found := model.voltage[key]; !found {
-			nodeInstance.Modeling = true
-
+		if _, found := model.voltage[key]; !found {
 			if entryCurrent, found := model.current[key]; found {
 				nodeInstance.I += entryCurrent
 			}
@@ -86,8 +84,7 @@ func (model *Model) Prepare() {
 
 			}
 		} else {
-			nodeInstance.Modeling = false
-			nodeInstance.V = entryV
+			delete(model.nodes, key)
 		}
 
 		bar.Add(1)

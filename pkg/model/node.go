@@ -6,7 +6,6 @@ import (
 
 // Describe structor of circuits node
 type Node struct {
-	Modeling       bool
 	Name           string
 	I              float64
 	V              float64
@@ -64,15 +63,13 @@ func SumZip(y []interface{}, x []float64) float64 {
 // Stack connected nodes and res with viases nodes and res, if this node is via.
 // Calculates the sum of res and initial value of node voltage.
 func (n *Node) Init() {
-	if n.Modeling {
-		n.ConnectedNodes = append(n.ConnectedNodes, n.ViasesNodes...)
-		n.ConnectedRes = append(n.ConnectedRes, n.ViasesRes...)
-		n.SumRes = SumReverse(n.ConnectedRes)
-		n.V = n.I - SumZip(n.ConnectedNodes, n.ConnectedRes)
-		n.Viases = nil
-		n.ViasesRes = nil
-		n.ViasesNodes = nil
-	}
+	n.ConnectedNodes = append(n.ConnectedNodes, n.ViasesNodes...)
+	n.ConnectedRes = append(n.ConnectedRes, n.ViasesRes...)
+	n.SumRes = SumReverse(n.ConnectedRes)
+	n.V = n.I - SumZip(n.ConnectedNodes, n.ConnectedRes)
+	n.Viases = nil
+	n.ViasesRes = nil
+	n.ViasesNodes = nil
 }
 
 // Make step in modeling for node.
@@ -80,27 +77,23 @@ func (n *Node) Init() {
 // Else will be return 0.
 // Note that node and res count must be equivalent.
 func (n *Node) Step(e float64) int {
-	if n.Modeling {
-		n.PrevV = n.V
-		sum := 0.0
+	n.PrevV = n.V
+	sum := 0.0
 
-		for i := 0; i < len(n.ConnectedNodes); i++ {
-			if entryNode, ok := n.ConnectedNodes[i].(float64); ok {
-				sum += entryNode / n.ConnectedRes[i]
-			}
-			if entryNode, ok := n.ConnectedNodes[i].(*Node); ok {
-				sum += entryNode.V / n.ConnectedRes[i]
-			}
+	for i := 0; i < len(n.ConnectedNodes); i++ {
+		if entryNode, ok := n.ConnectedNodes[i].(float64); ok {
+			sum += entryNode / n.ConnectedRes[i]
 		}
-
-		n.V = sum/n.SumRes - n.I/n.SumRes
-
-		if math.Abs(n.V-n.PrevV) < e {
-			return 1
+		if entryNode, ok := n.ConnectedNodes[i].(*Node); ok {
+			sum += entryNode.V / n.ConnectedRes[i]
 		}
+	}
 
-		return 0
-	} else {
+	n.V = 1.75*(sum/n.SumRes-n.I/n.SumRes) + (1-1.75)*n.PrevV
+
+	if math.Abs(n.V-n.PrevV) < e {
 		return 1
 	}
+
+	return 0
 }

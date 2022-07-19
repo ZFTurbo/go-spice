@@ -11,14 +11,14 @@ import (
 )
 
 // Writes solution in file
-func WriteLogs(nodes map[string]*model.Node, res map[string]string, filePath string, resultsPath string) {
+func WriteLogs(nodes map[string]*model.Node, res map[string]string, volage map[string]float64, filePath string, resultsPath string) {
 	splitedPath := strings.Split(filePath, "/")
 	projName := strings.Split(splitedPath[len(splitedPath)-1], ".")[0]
 
 	utils.CreateFolder(resultsPath)
 	utils.CreateFolder(resultsPath + "/" + projName)
 
-	bar := prettier.DefaultBar(len(nodes)+2*len(res), "Writing logs...")
+	bar := prettier.DefaultBar(len(nodes)+2*len(res)+len(volage), "Writing logs...")
 	outFileNodeVal := utils.CreateFile(resultsPath + "/" + projName + "/" + projName + ".solution")
 
 	var size [2]int
@@ -37,6 +37,11 @@ func WriteLogs(nodes map[string]*model.Node, res map[string]string, filePath str
 			size[1] = newY
 		}
 
+		bar.Add(1)
+	}
+
+	for key, v := range volage {
+		outFileNodeVal.WriteString(key + " " + strconv.FormatFloat(v, 'e', 8, 64) + "\n")
 		bar.Add(1)
 	}
 

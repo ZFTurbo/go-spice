@@ -3,6 +3,7 @@ package prettier
 import (
 	"fmt"
 	"log"
+	"sort"
 	"strconv"
 	"time"
 
@@ -61,20 +62,28 @@ func DefaultBar(steps int, barName string) *progressbar.ProgressBar {
 
 // Print info block.
 func Info(messages map[string]interface{}) {
+	var keys []string
+
+	for key := range messages {
+		keys = append(keys, key)
+	}
+
+	sort.Strings(keys)
+
 	fmt.Println(Yellow + "----Info----")
 
-	for key, value := range messages {
-		if entryMessage, ok := value.(string); ok {
+	for _, key := range keys {
+		if entryMessage, ok := messages[key].(string); ok {
 			fmt.Println(key + entryMessage)
 		}
-		if entryMessage, ok := value.(float64); ok {
+		if entryMessage, ok := messages[key].(float64); ok {
 			if entryMessage > 1e5 || entryMessage < 1e-3 {
 				fmt.Println(key + strconv.FormatFloat(entryMessage, 'e', 8, 64))
 			} else {
 				fmt.Println(key + strconv.FormatFloat(entryMessage, 'f', 8, 64))
 			}
 		}
-		if entryMessage, ok := value.(int); ok {
+		if entryMessage, ok := messages[key].(int); ok {
 			fmt.Println(key + strconv.FormatInt(int64(entryMessage), 10))
 		}
 	}

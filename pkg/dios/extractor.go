@@ -108,6 +108,7 @@ func Extract(fileName string) (map[string]string, map[string]float64, map[string
 		}
 		bar.Close()
 		fmt.Println()
+		fmt.Println()
 
 		return res, voltage, current, nodes
 	} else {

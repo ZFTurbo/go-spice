@@ -18,16 +18,26 @@ func main() {
 	flag.Parse()
 
 	prettier.Start("PGSim", "1.1.0", "Ilya Shafeev", "MIT")
-	prettier.Info(map[string]interface{}{"Input File: ": *inFilePath, "Precicion: ": *e, "Max steps: ": *maxSteps})
 
 	res, voltage, current, nodes := dios.Extract(*inFilePath)
+
+	prettier.Info(map[string]interface{}{
+		"1. Input File: ":         *inFilePath,
+		"2. Precicion: ":          *e,
+		"3. Max steps: ":          *maxSteps,
+		"4. Nodes to be solved: ": len(nodes),
+		"5. Resistors: ":          len(res),
+		"6. Current sources: ":    len(current),
+		"7. Voltage sources: ":    len(voltage),
+	})
+
 	nodeBasedModel := model.NewModel(voltage, current, nodes, *maxSteps, *e)
 
 	nodeBasedModel.Prepare()
 	nodeBasedModel.Init()
 	nodeBasedModel.Modeling()
 
-	dios.WriteLogs(nodes, res, *inFilePath, *resultsPath)
+	dios.WriteLogs(nodes, res, voltage, *inFilePath, *resultsPath)
 
 	prettier.End(timer)
 
