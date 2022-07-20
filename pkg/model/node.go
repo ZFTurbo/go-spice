@@ -1,6 +1,7 @@
 package model
 
 import (
+	"fmt"
 	"math"
 )
 
@@ -68,8 +69,8 @@ func (n *Node) AddCupaster(val float64) {
 }
 
 // Add current source
-func (n *Node) AddCurrent(c *Current) {
-	n.i = append(n.i, c)
+func (n *Node) SetCurrents(c []*Current) {
+	n.i = c
 }
 
 // Calculates the sum of the elements of an array of the form 1/x.
@@ -108,6 +109,7 @@ func (n *Node) Init() {
 		sumI += n.i[i].val
 	}
 
+	n.prevV = 0
 	n.connectedNodes = append(n.connectedNodes, n.viasesNodes...)
 	n.connectedRes = append(n.connectedRes, n.viasesRes...)
 	n.sumRes = sumReverse(n.connectedRes)
@@ -118,11 +120,15 @@ func (n *Node) Init() {
 	n.viasesNodes = nil
 }
 
+func (n *Node) SavePrevTimeStep() {
+	n.prevV = n.v
+}
+
 // Make step in modeling for node.
 // If previous voltage value and current calculated value differ on less then e then will be return 1.
 // Else will be return 0.
 // Note that node and res count must be equivalent.
-func (n *Node) Step(e float64) int {
+func (n *Node) Step(e float64, h float64, t float64) int {
 	_v := n.v
 	sum := 0.0
 	sumI := 0.0
@@ -137,10 +143,26 @@ func (n *Node) Step(e float64) int {
 	}
 
 	for i := 0; i < len(n.i); i++ {
-		sumI += n.i[i].val
+		sumI += n.i[i].PulseValue(t)
 	}
 
-	n.v = 1.75*(sum-sumI)/n.sumRes + (1-1.75)*_v
+	n.v = (sum - sumI) / n.sumRes
+
+	if len(n.capasters) != 0 {
+		capSum := 0.0
+
+		for i := 0; i < len(n.capasters); i++ {
+			capSum += 1 / n.capasters[i]
+		}
+
+		n.v = n.prevV + h*(-sum+sumI+n.sumRes*n.prevV)*capSum
+
+		if n.name == "n0_2679_17913" {
+			fmt.Println(n.capasters)
+		}
+	}
+
+	n.v = 1.75*n.v + (1-1.75)*_v
 
 	if math.Abs(n.v-_v) < e {
 		return 1

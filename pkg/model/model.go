@@ -8,16 +8,19 @@ import (
 // Zeidel model for solving system of equations.
 // Require max steps for modeling and accurasy of method.
 type Model struct {
-	voltage  map[string]float64
-	current  map[string]*Current
-	nodes    map[string]*Node
-	maxSteps int
-	e        float64
+	voltage    map[string]float64
+	current    map[string][]*Current
+	capasters  map[string]float64
+	inductance map[string]float64
+	nodes      map[string]*Node
+	tran       [2]float64
+	maxSteps   int
+	e          float64
 }
 
 // Craete instance of Model
-func NewModel(voltage map[string]float64, current map[string]*Current, nodes map[string]*Node, maxSteps int, e float64) *Model {
-	model := &Model{voltage: voltage, current: current, nodes: nodes, maxSteps: maxSteps, e: e}
+func NewModel(voltage map[string]float64, current map[string][]*Current, capasters map[string]float64, inductance map[string]float64, nodes map[string]*Node, tran [2]float64, maxSteps int, e float64) *Model {
+	model := &Model{voltage, current, capasters, inductance, nodes, tran, maxSteps, e}
 	return model
 }
 
@@ -31,7 +34,15 @@ func (model *Model) Prepare() {
 	for key, nodeInstance := range model.nodes {
 		if _, found := model.voltage[key]; !found {
 			if entryCurrent, found := model.current[key]; found {
-				nodeInstance.AddCurrent(entryCurrent)
+				nodeInstance.SetCurrents(entryCurrent)
+			}
+
+			if entryCap, found := model.capasters[key]; found {
+				nodeInstance.AddCupaster(entryCap)
+			}
+
+			if entryInd, found := model.inductance[key]; found {
+				nodeInstance.AddInductance(entryInd)
 			}
 
 			if len(nodeInstance.viases) == 0 {
@@ -54,7 +65,7 @@ func (model *Model) Prepare() {
 					}
 
 					if entryCurrent, found := model.current[nodeInstance.viases[i]]; found {
-						nodeInstance.AddCurrent(entryCurrent)
+						nodeInstance.SetCurrents(entryCurrent)
 					}
 				}
 
@@ -118,7 +129,7 @@ func (model *Model) Modeling() {
 		solvedNodes := 0
 
 		for _, nodeInstance := range model.nodes {
-			solvedNodes += nodeInstance.Step(model.e)
+			solvedNodes += nodeInstance.Step(model.e, model.tran[1], 0)
 		}
 
 		if solvedNodes != len(model.nodes) {
@@ -127,6 +138,10 @@ func (model *Model) Modeling() {
 		} else {
 			break
 		}
+	}
+
+	for _, nodeInstance := range model.nodes {
+		nodeInstance.SavePrevTimeStep()
 	}
 
 	bar.Close()

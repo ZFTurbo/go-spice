@@ -41,7 +41,12 @@ func WriteLogs(nodes map[string]*model.Node, res map[string]string, volage map[s
 	}
 
 	for key, v := range volage {
-		outFileNodeVal.WriteString(key + " " + strconv.FormatFloat(v, 'e', 8, 64) + "\n")
+		if key != "0" {
+			outFileNodeVal.WriteString(key + " " + strconv.FormatFloat(v, 'e', 8, 64) + "\n")
+		} else {
+			outFileNodeVal.WriteString("G " + strconv.FormatFloat(v, 'e', 8, 64) + "\n")
+		}
+
 		bar.Add(1)
 	}
 

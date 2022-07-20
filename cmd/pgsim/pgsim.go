@@ -19,7 +19,7 @@ func main() {
 
 	prettier.Start("PGSim", "1.1.0", "Ilya Shafeev", "MIT")
 
-	res, voltage, current, nodes := dios.Extract(*inFilePath)
+	tran, res, voltage, current, capasters, inductance, nodes := dios.Extract(*inFilePath)
 
 	prettier.Info(map[string]interface{}{
 		"1. Input File: ":         *inFilePath,
@@ -31,7 +31,7 @@ func main() {
 		"7. Voltage sources: ":    len(voltage),
 	})
 
-	nodeBasedModel := model.NewModel(voltage, current, nodes, *maxSteps, *e)
+	nodeBasedModel := model.NewModel(voltage, current, capasters, inductance, nodes, tran, *maxSteps, *e)
 
 	nodeBasedModel.Prepare()
 	nodeBasedModel.Init()
