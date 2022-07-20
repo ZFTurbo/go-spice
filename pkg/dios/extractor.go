@@ -6,15 +6,19 @@ import (
 	"pgsolver/pkg/model"
 	"pgsolver/pkg/prettier"
 	"pgsolver/pkg/utils"
+	"regexp"
 	"strings"
 )
 
 // Extract all data from spice net list.
 // Return voltage, current, node maps.
-func Extract(fileName string) (map[string]string, map[string]float64, map[string]float64, map[string]*model.Node) {
+func Extract(fileName string) (map[string]string, map[string]float64, map[string]*model.Current, map[string]*model.Node) {
+	re := regexp.MustCompile(`-?[\d.]+(?:e-?\d+)?`)
 	res := make(map[string]string)
 	voltage := make(map[string]float64)
-	current := make(map[string]float64)
+	current := make(map[string]*model.Current)
+	inductance := make(map[string]float64)
+	capasters := make(map[string]float64)
 	nodes := make(map[string]*model.Node)
 
 	file := utils.OpenFile(fileName)
@@ -27,53 +31,76 @@ func Extract(fileName string) (map[string]string, map[string]float64, map[string
 		// Reading input file
 		for scanner.Scan() {
 			line := scanner.Text()
-			splitedLine := strings.Split(line, " ")
+			splitedLine := strings.Fields(line)
+			lastElement := len(splitedLine) - 1
 
-			// Change type of resisotr gnd or vdd(vpwr)
-			if line[0] == '*' && len(splitedLine) > 2 {
-				if strings.Contains(splitedLine[2], "VDD") {
+			switch line[0] {
+			case '*':
+				if strings.Contains(line, "VDD") {
 					resType = "VDD"
 				}
-				if strings.Contains(splitedLine[2], "GND") {
+				if strings.Contains(line, "GND") {
 					resType = "GND"
 				}
-			}
+			case 'l':
+				inductance[splitedLine[1]] = utils.ParseFloat(splitedLine[lastElement])
+			case 'c':
+				capasters[splitedLine[1]] = utils.ParseFloat(splitedLine[lastElement])
+			case 'v':
+				voltage[splitedLine[1]] = utils.ParseFloat(splitedLine[lastElement])
+			case 'i':
+				iValue := utils.ParseFloat(splitedLine[3])
 
-			// Find volage source
-			if line[0] == 'v' {
-				voltage[splitedLine[1]] = utils.ParseFloat(splitedLine[len(splitedLine)-1])
-			}
-
-			// Find current source
-			if line[0] == 'i' {
-				iValue := utils.ParseFloat(splitedLine[len(splitedLine)-2])
 				// By default use as node name as first connection of current source, not ground connection
 				if strings.Contains(splitedLine[0], "_v") {
 					if entryCurrent, found := current[splitedLine[1]]; found {
-						entryCurrent += iValue
-						current[splitedLine[1]] = entryCurrent
+						entryCurrent.AddVal(iValue)
 					} else {
-						current[splitedLine[1]] = iValue
+						if len(splitedLine) < 5 {
+							current[splitedLine[1]] = model.NewCurrent(splitedLine[1], iValue)
+						} else {
+							if strings.Contains(line, "pulse") {
+								pulseSplited := re.FindAllString(strings.Split(line, "pulse")[1], -1)
+								min := utils.ParseFloat(pulseSplited[1])
+								tr := utils.ParseFloat(pulseSplited[2])
+								tf := utils.ParseFloat(pulseSplited[3])
+								pw := utils.ParseFloat(pulseSplited[4])
+								dl := utils.ParseFloat(pulseSplited[5])
+
+								current[splitedLine[1]] = model.NewCurrentPulse(splitedLine[1], iValue, min, tr, tf, pw, dl)
+							}
+						}
 					}
 				} else {
 					// Due to IBM format if current source direction to ground change current dirction, not ground connection
 					if strings.Contains(splitedLine[0], "_g") {
 						if entryCurrent, found := current[splitedLine[2]]; found {
-							entryCurrent += -iValue
-							current[splitedLine[2]] = entryCurrent
+							entryCurrent.AddVal(-iValue)
 						} else {
-							current[splitedLine[2]] = -iValue
+							if len(splitedLine) < 5 {
+								current[splitedLine[2]] = model.NewCurrent(splitedLine[2], -iValue)
+							} else {
+								if strings.Contains(line, "pulse") {
+									pulseSplited := re.FindAllString(strings.Split(line, "pulse")[1], -1)
+									min := utils.ParseFloat(pulseSplited[1])
+									tr := utils.ParseFloat(pulseSplited[2])
+									tf := utils.ParseFloat(pulseSplited[3])
+									pw := utils.ParseFloat(pulseSplited[4])
+									dl := utils.ParseFloat(pulseSplited[5])
+
+									current[splitedLine[2]] = model.NewCurrentPulse(splitedLine[2], -iValue, min, tr, tf, pw, dl)
+								}
+							}
 						}
 					}
 				}
-			}
-
-			if (line[0] == 'r' || line[0] == 'R' || line[0] == 'V') && splitedLine[len(splitedLine)-2] != "0" {
-				resVal := utils.ParseFloat(splitedLine[len(splitedLine)-1])
+			case 'r', 'R', 'V':
+				resVal := utils.ParseFloat(splitedLine[lastElement])
 
 				if line[0] == 'R' && splitedLine[1][1] == splitedLine[2][1] {
 					res[splitedLine[0]] = resType + " " + splitedLine[1] + " " + splitedLine[2]
 				}
+
 				// Check if resistor is via.
 				// If resistance value is too small.
 				if resVal != 0.0 {
@@ -104,8 +131,10 @@ func Extract(fileName string) (map[string]string, map[string]float64, map[string
 					}
 				}
 			}
+
 			bar.Add(1)
 		}
+
 		bar.Close()
 		fmt.Println()
 		fmt.Println()

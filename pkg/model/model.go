@@ -9,14 +9,14 @@ import (
 // Require max steps for modeling and accurasy of method.
 type Model struct {
 	voltage  map[string]float64
-	current  map[string]float64
+	current  map[string]*Current
 	nodes    map[string]*Node
 	maxSteps int
 	e        float64
 }
 
 // Craete instance of Model
-func NewModel(voltage map[string]float64, current map[string]float64, nodes map[string]*Node, maxSteps int, e float64) *Model {
+func NewModel(voltage map[string]float64, current map[string]*Current, nodes map[string]*Node, maxSteps int, e float64) *Model {
 	model := &Model{voltage: voltage, current: current, nodes: nodes, maxSteps: maxSteps, e: e}
 	return model
 }
@@ -31,7 +31,7 @@ func (model *Model) Prepare() {
 	for key, nodeInstance := range model.nodes {
 		if _, found := model.voltage[key]; !found {
 			if entryCurrent, found := model.current[key]; found {
-				nodeInstance.i += entryCurrent
+				nodeInstance.AddCurrent(entryCurrent)
 			}
 
 			if len(nodeInstance.viases) == 0 {
@@ -54,7 +54,7 @@ func (model *Model) Prepare() {
 					}
 
 					if entryCurrent, found := model.current[nodeInstance.viases[i]]; found {
-						nodeInstance.i += entryCurrent
+						nodeInstance.AddCurrent(entryCurrent)
 					}
 				}
 

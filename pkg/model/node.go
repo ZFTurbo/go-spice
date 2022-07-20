@@ -7,7 +7,7 @@ import (
 // Describe structor of circuits node
 type Node struct {
 	name           string
-	i              float64
+	i              []*Current
 	v              float64
 	prevV          float64
 	sumRes         float64
@@ -16,6 +16,8 @@ type Node struct {
 	viases         []string
 	viasesRes      []float64
 	viasesNodes    []interface{}
+	inductance     []float64
+	capasters      []float64
 }
 
 // Creates node instanse and return its address.
@@ -55,6 +57,21 @@ func (n *Node) AddVia(name string) {
 	n.viases = append(n.viases, name)
 }
 
+// Add induction
+func (n *Node) AddInductance(val float64) {
+	n.inductance = append(n.inductance, val)
+}
+
+// Add capaster
+func (n *Node) AddCupaster(val float64) {
+	n.capasters = append(n.capasters, val)
+}
+
+// Add current source
+func (n *Node) AddCurrent(c *Current) {
+	n.i = append(n.i, c)
+}
+
 // Calculates the sum of the elements of an array of the form 1/x.
 // Where x is element of the array.
 func sumReverse(array []float64) float64 {
@@ -85,10 +102,16 @@ func sumZip(y []interface{}, x []float64) float64 {
 // Stack connected nodes and res with viases nodes and res, if this node is via.
 // Calculates the sum of res and initial value of node voltage.
 func (n *Node) Init() {
+	sumI := 0.0
+
+	for i := 0; i < len(n.i); i++ {
+		sumI += n.i[i].val
+	}
+
 	n.connectedNodes = append(n.connectedNodes, n.viasesNodes...)
 	n.connectedRes = append(n.connectedRes, n.viasesRes...)
 	n.sumRes = sumReverse(n.connectedRes)
-	n.v = n.i - sumZip(n.connectedNodes, n.connectedRes)
+	n.v = sumI - sumZip(n.connectedNodes, n.connectedRes)
 
 	n.viases = nil
 	n.viasesRes = nil
@@ -102,6 +125,7 @@ func (n *Node) Init() {
 func (n *Node) Step(e float64) int {
 	_v := n.v
 	sum := 0.0
+	sumI := 0.0
 
 	for i := 0; i < len(n.connectedNodes); i++ {
 		if entryNode, ok := n.connectedNodes[i].(float64); ok {
@@ -112,7 +136,11 @@ func (n *Node) Step(e float64) int {
 		}
 	}
 
-	n.v = 1.75*(sum-n.i)/n.sumRes + (1-1.75)*_v
+	for i := 0; i < len(n.i); i++ {
+		sumI += n.i[i].val
+	}
+
+	n.v = 1.75*(sum-sumI)/n.sumRes + (1-1.75)*_v
 
 	if math.Abs(n.v-_v) < e {
 		return 1
