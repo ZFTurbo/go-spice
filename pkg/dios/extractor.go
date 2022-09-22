@@ -12,14 +12,14 @@ import (
 
 // Extract all data from spice net list.
 // Return voltage, current, node maps.
-func Extract(fileName string) ([2]float64, map[string]string, map[string]float64, map[string][]*model.Current, map[string]float64, map[string]float64, map[string]*model.Node) {
+func Extract(fileName string) (*model.Analysis, map[string]string, map[string]float64, map[string][]*model.Current, map[string][]*model.Capaster, map[string][]*model.Inductance, map[string]*model.Node) {
 	re := regexp.MustCompile(`-?[\d.]+(?:e-?\d+)?`)
-	tran := [2]float64{0.0, 0.0}
+	analysis := model.NewAnalysis("DC", 0, 0)
 	res := make(map[string]string)
 	voltage := make(map[string]float64)
 	current := make(map[string][]*model.Current)
-	inductance := make(map[string]float64)
-	capasters := make(map[string]float64)
+	inductance := make(map[string][]*model.Inductance)
+	capasters := make(map[string][]*model.Capaster)
 	nodes := make(map[string]*model.Node)
 
 	file := utils.OpenFile(fileName)
@@ -47,14 +47,42 @@ func Extract(fileName string) ([2]float64, map[string]string, map[string]float64
 					resType = "GND"
 				}
 			case 'l':
-				inductance[splitedLine[1]] = utils.ParseFloat(splitedLine[lastElement])
-				inductance[splitedLine[2]] = utils.ParseFloat(splitedLine[lastElement])
-			case 'c':
-				if strings.Contains(line, "_v") {
-					capasters[splitedLine[1]] = utils.ParseFloat(splitedLine[lastElement])
+				// TODO: Size down this block of code
+				if entryNode, found := nodes[splitedLine[1]]; found {
+					indc := model.NewInductance(splitedLine[2], utils.ParseFloat(splitedLine[lastElement]))
+					entryNode.AddInductance(indc)
+				} else {
+					indc := model.NewInductance(splitedLine[2], utils.ParseFloat(splitedLine[lastElement]))
+					nodes[splitedLine[1]] = model.NewNodeRaw(splitedLine[1])
+					nodes[splitedLine[1]].AddInductance(indc)
 				}
-				if strings.Contains(line, "_g") {
-					capasters[splitedLine[2]] = utils.ParseFloat(splitedLine[lastElement])
+
+				if entryNode, found := nodes[splitedLine[2]]; found {
+					indc := model.NewInductance(splitedLine[1], utils.ParseFloat(splitedLine[lastElement]))
+					entryNode.AddInductance(indc)
+				} else {
+					indc := model.NewInductance(splitedLine[1], utils.ParseFloat(splitedLine[lastElement]))
+					nodes[splitedLine[2]] = model.NewNodeRaw(splitedLine[2])
+					nodes[splitedLine[2]].AddInductance(indc)
+				}
+			case 'c':
+				// TODO: Size down this block of code
+				if entryNode, found := nodes[splitedLine[1]]; found {
+					cap := model.NewCapaster(splitedLine[2], utils.ParseFloat(splitedLine[lastElement]))
+					entryNode.AddCapaster(cap)
+				} else {
+					cap := model.NewCapaster(splitedLine[2], utils.ParseFloat(splitedLine[lastElement]))
+					nodes[splitedLine[1]] = model.NewNodeRaw(splitedLine[1])
+					nodes[splitedLine[1]].AddCapaster(cap)
+				}
+
+				if entryNode, found := nodes[splitedLine[2]]; found {
+					cap := model.NewCapaster(splitedLine[1], -utils.ParseFloat(splitedLine[lastElement]))
+					entryNode.AddCapaster(cap)
+				} else {
+					cap := model.NewCapaster(splitedLine[1], -utils.ParseFloat(splitedLine[lastElement]))
+					nodes[splitedLine[2]] = model.NewNodeRaw(splitedLine[2])
+					nodes[splitedLine[2]].AddCapaster(cap)
 				}
 			case 'v':
 				voltage[splitedLine[1]] = utils.ParseFloat(splitedLine[lastElement])
@@ -70,6 +98,7 @@ func Extract(fileName string) ([2]float64, map[string]string, map[string]float64
 						if len(splitedLine) < 5 {
 							current[splitedLine[1]] = append(current[splitedLine[1]], model.NewCurrent(splitedLine[1], iValue))
 						} else {
+							// TODO: Replace this by function.
 							if strings.Contains(line, "pulse") {
 								pulseSplited := re.FindAllString(strings.Split(line, "pulse")[1], -1)
 								max := utils.ParseFloat(pulseSplited[1])
@@ -93,16 +122,17 @@ func Extract(fileName string) ([2]float64, map[string]string, map[string]float64
 							if len(splitedLine) < 5 {
 								current[splitedLine[2]] = append(current[splitedLine[2]], model.NewCurrent(splitedLine[2], -iValue))
 							} else {
+								// TODO: Replace this by function.
 								if strings.Contains(line, "pulse") {
 									pulseSplited := re.FindAllString(strings.Split(line, "pulse")[1], -1)
-									max := -utils.ParseFloat(pulseSplited[1])
+									max := utils.ParseFloat(pulseSplited[1])
 									td := utils.ParseFloat(pulseSplited[2])
 									tr := utils.ParseFloat(pulseSplited[3])
 									tf := utils.ParseFloat(pulseSplited[4])
 									pw := utils.ParseFloat(pulseSplited[5])
 									per := utils.ParseFloat(pulseSplited[6])
 
-									current[splitedLine[2]] = append(current[splitedLine[2]], model.NewCurrentPulse(splitedLine[2], iValue, max, td, tr, tf, pw, per))
+									current[splitedLine[2]] = append(current[splitedLine[2]], model.NewCurrentPulse(splitedLine[2], -iValue, -max, td, tr, tf, pw, per))
 								}
 							}
 						}
@@ -111,7 +141,8 @@ func Extract(fileName string) ([2]float64, map[string]string, map[string]float64
 			case 'r', 'R', 'V':
 				resVal := utils.ParseFloat(splitedLine[lastElement])
 
-				if line[0] == 'R' && splitedLine[1][1] == splitedLine[2][1] {
+				// FIXME: Replace with regexp
+				if (line[0] == 'R' || line[0] == 'r') && splitedLine[lastElement-1] != "0" && splitedLine[1] != "0" && splitedLine[1][1] == splitedLine[2][1] {
 					res[splitedLine[0]] = resType + " " + splitedLine[1] + " " + splitedLine[2]
 				}
 
@@ -146,8 +177,9 @@ func Extract(fileName string) ([2]float64, map[string]string, map[string]float64
 				}
 			case '.':
 				if strings.Contains(line, ".tran") {
-					tran[1] = utils.ParseFloat(splitedLine[1])
-					tran[0] = utils.ParseFloat(splitedLine[2])
+					analysis.SetName("TR")
+					analysis.SetFullTime(utils.ParseFloat(splitedLine[2]))
+					analysis.SetTimeStep(utils.ParseFloat(splitedLine[1]))
 				}
 			}
 
@@ -158,9 +190,9 @@ func Extract(fileName string) ([2]float64, map[string]string, map[string]float64
 		fmt.Println()
 		fmt.Println()
 
-		return tran, res, voltage, current, capasters, inductance, nodes
+		return analysis, res, voltage, current, capasters, inductance, nodes
 	} else {
 		prettier.Error("Can't get file stats.", err)
-		return tran, nil, nil, nil, nil, nil, nil
+		return nil, nil, nil, nil, nil, nil, nil
 	}
 }
