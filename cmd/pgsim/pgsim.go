@@ -2,10 +2,11 @@ package main
 
 import (
 	"flag"
+	"time"
+
 	"pgsolver/pkg/dios"
 	"pgsolver/pkg/model"
 	"pgsolver/pkg/prettier"
-	"time"
 )
 
 func main() {
@@ -19,26 +20,20 @@ func main() {
 
 	prettier.Start("PGSim", "1.1.0", "Ilya Shafeev", "MIT")
 
-	analysis, res, voltage, current, capasters, inductance, nodes := dios.Extract(*inFilePath)
+	nodes := dios.Extract(*inFilePath)
 
 	prettier.Info(map[string]interface{}{
 		"1. Input File: ":      *inFilePath,
 		"2. Precicion: ":       *e,
 		"3. Max steps: ":       *maxSteps,
 		"4. Nodes: ":           len(nodes),
-		"5. Resistors: ":       len(res),
-		"6. Current sources: ": len(current),
-		"7. Voltage sources: ": len(voltage),
-		"8. Capasters: ":       len(capasters),
-		"9. Inductance: ":      len(inductance),
 	})
 
-	nodeBasedModel := model.NewModel(voltage, current, inductance, capasters, nodes, analysis, *maxSteps, *e)
+	nodeBasedModel := model.NewModel(nodes, *maxSteps, *e)
 
-	nodeBasedModel.Modeling()
+	model.DCModeling(nodeBasedModel)
 
-	dios.WriteLogs(nodes, res, voltage, *inFilePath, *resultsPath)
+	dios.WriteLogs(nodes, *inFilePath, *resultsPath)
 
 	prettier.End(timer)
-
 }

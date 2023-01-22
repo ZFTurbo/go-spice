@@ -18,13 +18,6 @@ func exists(path string) (bool, error) {
 	return false, err
 }
 
-func Opacity(str string, tar string) float64 {
-	if str == tar {
-		return 0.35
-	}
-	return 1
-}
-
 func ParseInt(str string) int {
 	if entry, err := strconv.ParseInt(str, 10, 0); err == nil {
 		return int(entry)

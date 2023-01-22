@@ -2,9 +2,7 @@ module pgsolver
 
 go 1.18
 
-require (
-	github.com/schollz/progressbar/v3 v3.8.6
-)
+require github.com/schollz/progressbar/v3 v3.8.6
 
 require (
 	github.com/mattn/go-runewidth v0.0.13 // indirect

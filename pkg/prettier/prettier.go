@@ -10,15 +10,17 @@ import (
 	"github.com/schollz/progressbar/v3"
 )
 
-const Reset = "\033[0m"
-const Red = "\033[31m"
-const Green = "\033[32m"
-const Yellow = "\033[33m"
-const Blue = "\033[34m"
-const Purple = "\033[35m"
-const Cyan = "\033[36m"
-const Gray = "\033[37m"
-const White = "\033[97m"
+const (
+	Reset  = ""
+	Red    = ""
+	Green  = ""
+	Yellow = ""
+	Blue   = ""
+	Purple = ""
+	Cyan   = ""
+	Gray   = ""
+	White  = ""
+)
 
 // Start your project and start time clock.
 func Start(projectName string, projectVersion string, projectAuthor string, licence string) {
@@ -48,10 +50,10 @@ func DefaultBar(steps int, barName string) *progressbar.ProgressBar {
 		progressbar.OptionSetRenderBlankState(true),
 		progressbar.OptionShowBytes(true),
 		progressbar.OptionSetWidth(30),
-		progressbar.OptionSetDescription("[cyan]"+barName+"[reset]"),
+		progressbar.OptionSetDescription(barName),
 		progressbar.OptionSetTheme(progressbar.Theme{
-			Saucer:        "[green]=[reset]",
-			SaucerHead:    "[red]>[reset]",
+			Saucer:        "=",
+			SaucerHead:    ">",
 			SaucerPadding: " ",
 			BarStart:      "[",
 			BarEnd:        "]",
